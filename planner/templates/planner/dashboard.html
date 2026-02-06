@@ -34,4 +34,54 @@
     </div>
   </div>
 </div>
+
+<!-- pre-made trips section ---------------------------------------------------------->
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <h2 class="text-center mb-4 fw-bold">Explore Pre-Made Trips</h2>
+      <p class="text-center text-muted mb-5">Get inspired by these curated Chicago experiences</p>
+
+      <div class="accordion" id="premadeTripsAccordion">
+        {% for trip in premade_trips %}
+        <div class="accordion-item mb-3 border-0 shadow-sm rounded-3 overflow-hidden">
+          <h3 class="accordion-header">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#trip{{ forloop.counter }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="trip{{ forloop.counter }}">
+              <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                <span>{{ trip.title }}</span>
+                <span class="badge bg-primary ms-2">{{ trip.duration }}</span>
+              </div>
+            </button>
+          </h3>
+          <div id="trip{{ forloop.counter }}"
+               class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+               data-bs-parent="#premadeTripsAccordion">
+            <div class="accordion-body">
+              <p class="text-muted mb-3">{{ trip.description }}</p>
+              <h6 class="fw-bold mb-2">Highlights:</h6>
+              <ul class="list-unstyled">
+                {% for highlight in trip.highlights %}
+                <li class="mb-2">
+                  <i class="bi bi-check-circle-fill text-success me-2"></i>{{ highlight }}
+                </li>
+                {% endfor %}
+              </ul>
+              <div class="mt-3">
+                <a href="{% url 'planner:survey' %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-plus-circle me-1"></i>Create Similar Trip
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

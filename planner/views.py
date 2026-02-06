@@ -53,8 +53,49 @@ def dashboard(request):
     else:
         user_display = "[User]"
 
+    # Pre-made trip templates
+    premade_trips = [
+        {
+            "title": "Classic Chicago Experience",
+            "duration": "3 Days",
+            "description": "Perfect for first-timers! Explore iconic landmarks, deep-dish pizza, and stunning architecture.",
+            "highlights": [
+                "Millennium Park & Cloud Gate (The Bean)",
+                "Navy Pier & Lakefront Trail",
+                "Lou Malnati's Deep Dish Pizza",
+                "Architecture River Cruise",
+                "Museum of Science & Industry"
+            ]
+        },
+        {
+            "title": "Foodie's Paradise",
+            "duration": "2 Days",
+            "description": "A culinary journey through Chicago's diverse neighborhoods and award-winning restaurants.",
+            "highlights": [
+                "Chicago-style hot dogs at Portillo's",
+                "Italian beef at Al's Beef",
+                "Brunch in West Loop",
+                "Chicago French Market",
+                "Rooftop dining with skyline views"
+            ]
+        },
+        {
+            "title": "Art & Culture Tour",
+            "duration": "2 Days",
+            "description": "Immerse yourself in Chicago's world-class museums and vibrant arts scene.",
+            "highlights": [
+                "Art Institute of Chicago",
+                "Chicago Theatre District",
+                "Millennium Park concerts",
+                "Museum Campus (Field, Shedd, Adler)",
+                "Street art in Pilsen & Logan Square"
+            ]
+        }
+    ]
+
     return render(request, "planner/dashboard.html", {
         "user_display": user_display,
+        "premade_trips": premade_trips,
     })
 
 

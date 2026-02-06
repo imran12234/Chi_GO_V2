@@ -123,4 +123,40 @@ footer {
   backdrop-filter: blur(3px);
 }
 
+/* pre-made trips accordion ----------------------------------------------------- */
+.accordion-item {
+  border: 1px solid #e5e7eb !important;
+}
+
+.accordion-button {
+  background-color: #ffffff;
+  color: var(--chigo-black);
+  font-size: 1.1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #f8f9fa;
+  color: var(--chigo-black);
+  box-shadow: none;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: #e5e7eb;
+}
+
+.accordion-button::after {
+  filter: brightness(0.5);
+}
+
+.accordion-body {
+  padding: 1.5rem;
+  background-color: #ffffff;
+}
+
+.accordion-body ul li {
+  padding-left: 0.5rem;
+}
+
 
