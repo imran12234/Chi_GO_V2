@@ -339,7 +339,7 @@ def create_new_itinerary(request, stay_length):
 
     itinerary = Itinerary.objects.create(
         name=request.session["survey_data"]["trip_title"],
-        username=request.user,
+        username=request.user if request.user.is_authenticated else None,
         total_duration=stay_length,
         current_day=1
     )
