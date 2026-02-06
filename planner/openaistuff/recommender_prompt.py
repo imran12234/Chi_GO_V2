@@ -59,7 +59,7 @@ def activity_recommendation(user_preferences, location, radius_miles):
     activity_list = json.dumps(nearby_places(location, radius_miles))
     # print(f"Activity list sent to GPT: {activity_list}")
     prompt = build_prompt(user_preferences, activity_list)
-    response = client.chat.completions.create(model="gpt-4",
+    response = client.chat.completions.create(model="gpt-4o",
     messages=[
         {"role": "system", "content": "You are a JSON-only response generator. Use `null` for missing values (not `None`). Do not include any commentary outside the JSON object."},
         {"role": "user", "content": prompt}
