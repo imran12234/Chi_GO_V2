@@ -299,19 +299,23 @@ def make_activity_cards(activities: list, current_itinerary):
     Adds the activities to the database
     """
     print(f"Neighborhood: {json.dumps(activities, indent=4)}")
-    for i in range(len(activities)):
+    for activity in activities:
+        try:
+            neighborhood = Neighborhood.objects.get(name=activity["neighborhood"])
+        except Neighborhood.DoesNotExist:
+            neighborhood, _ = Neighborhood.objects.get_or_create(name=activity["neighborhood"])
         ItineraryActivity.objects.create(
             itinerary = current_itinerary,
-            activity_name = activities[i]["name"],
-            day = activities[i]["day"], # This will be given by ChatGPT
-            activity_neighborhood = Neighborhood.objects.get(name=activities[i]["neighborhood"]),
-            activity_description = activities[i]["explanation"],
-            order = activities[i]["order"], # This will also be given by ChatGPT. This represents the order each activity will happen
-            latitude = activities[i]["latitude"],
-            longitude = activities[i]["longitude"],
-            category = activities[i]["category"],
-            photo_name = activities[i]["photo_name"],
-            address = activities[i]["address"]
+            activity_name = activity["name"],
+            day = activity["day"],
+            activity_neighborhood = neighborhood,
+            activity_description = activity["explanation"],
+            order = activity["order"],
+            latitude = activity.get("latitude", 0),
+            longitude = activity.get("longitude", 0),
+            category = activity.get("category", "activity"),
+            photo_name = activity.get("photo_name", ""),
+            address = activity.get("address", "")
         )
 
 def get_activities(current_itinerary, day):
@@ -359,7 +363,7 @@ def fetch_and_store_recommendations(data, request):
         data["budget"],
         data["social_context"],
         data["dislikes"],
-        1.0 #WILL GET FROM SURVEY. THIS IS THE RADIUS IN MILES. TODO: Seem to be getting issues with increasing the distance, which increases the amount of activities to send to gpt, which possibly increases response size which fails more.
+        data.get("radius", 5)  # Use radius from survey (miles)
     )
 
     # need to add back all the photo names into dict
@@ -369,6 +373,10 @@ def fetch_and_store_recommendations(data, request):
     
     # add the photo details to the recommendations/itinerary list
     for itinerary in result["itinerary"]:
+        itinerary.setdefault("photo_name", "")
+        itinerary.setdefault("latitude", 0)
+        itinerary.setdefault("longitude", 0)
+        itinerary.setdefault("address", "")
         for neighborhood in activity_list["neighborhoods"]:
             for neighborhood_name, neighborhood_details in neighborhood.items():
                 for restaurant in neighborhood_details["restaurants"]:
@@ -388,6 +396,10 @@ def fetch_and_store_recommendations(data, request):
                             itinerary["address"] = attraction_details["address"]
 
     for recommendations in result["recommendations"]:
+        recommendations.setdefault("photo_name", "")
+        recommendations.setdefault("latitude", 0)
+        recommendations.setdefault("longitude", 0)
+        recommendations.setdefault("address", "")
         for neighborhood in activity_list["neighborhoods"]:
             for neighborhood_name, neighborhood_details in neighborhood.items():
                 for restaurant in neighborhood_details["restaurants"]:
@@ -403,7 +415,7 @@ def fetch_and_store_recommendations(data, request):
                         if attraction_name == recommendations["name"]:
                             recommendations["photo_name"] = attraction_details["photo_name"]
                             recommendations["latitude"] = attraction_details["location"]["latitude"]
-                            recommendations["longitude"] = attraction_details["longitude"]
+                            recommendations["longitude"] = attraction_details["location"]["longitude"]
                             recommendations["address"] = attraction_details["address"]
 
     print(f"[DEBUG] Photo URLs in itinerary:")
@@ -559,6 +571,27 @@ def photo_proxy(request):
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             return HttpResponse(response.content, content_type=response.headers.get('Content-Type', 'image/jpeg'))
+        elif response.status_code == 400:
+            # Photo reference may be expired — refresh by fetching the place directly
+            # photo_name format: places/{place_id}/photos/{photo_reference}
+            parts = photo_name.split('/')
+            if len(parts) >= 2:
+                place_id = parts[1]
+                details_response = requests.get(
+                    f"https://places.googleapis.com/v1/places/{place_id}",
+                    headers={"X-Goog-Api-Key": api_key, "X-Goog-FieldMask": "photos"},
+                    timeout=10
+                )
+                if details_response.status_code == 200:
+                    details_data = details_response.json()
+                    if 'photos' in details_data and details_data['photos']:
+                        fresh_photo_name = details_data['photos'][0]['name']
+                        fresh_url = f"https://places.googleapis.com/v1/{fresh_photo_name}/media?maxHeightPx=400&key={api_key}"
+                        fresh_response = requests.get(fresh_url, timeout=10)
+                        if fresh_response.status_code == 200:
+                            return HttpResponse(fresh_response.content, content_type=fresh_response.headers.get('Content-Type', 'image/jpeg'))
+            print(f"[ERROR] Failed to fetch photo (stale ref): {response.status_code}")
+            return HttpResponse(status=404)
         else:
             print(f"[ERROR] Failed to fetch photo: {response.status_code} - {response.text}")
             return HttpResponse(status=response.status_code)

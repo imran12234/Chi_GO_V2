@@ -2,31 +2,123 @@
 {% block title %}Trip Survey{% endblock %}
 
 {% block content %}
-<section class="chigo-hero mb-4">
-    <h1>Plan Your Trip</h1>
-</section>
-
-<div class="container mb-5">
-    <form method="post" id="survey-form" novalidate>
+<div class="container-lg d-flex flex-column" style="min-height: calc(100vh - 120px); padding-top: 1.5rem; padding-bottom: 1.5rem;">
+    <form method="post" id="survey-form" novalidate class="flex-grow-1 d-flex flex-column">
         {% csrf_token %}
-        <div class="card p-4 chigo-card">
+        <div class="card chigo-card overflow-hidden border-0 shadow flex-grow-1 d-flex flex-column">
 
-            <!-- Trip Title -->
-            <div class="mb-4">
-                <label for="trip_title" class="form-label">Trip Title</label>
-                <input type="text" class="form-control" id="trip_title" name="trip_title" placeholder="My Trip" required
-                    value="{{ form.trip_title.value|default:'' }}">
-                {% if form.trip_title.errors %}
-                <div class="text-danger small mt-1">{{ form.trip_title.errors.0 }}</div>
-                {% endif %}
+            <!-- Card Header -->
+            <div class="px-4 py-4" style="background: linear-gradient(135deg, #0a4bb5 0%, #0d6efd 100%);">
+                <h4 class="text-white fw-bold mb-0"><i class="bi bi-map me-2"></i>Plan Your Trip</h4>
+                <p class="text-white opacity-75 small mb-0">Tell us about your ideal Chicago adventure</p>
             </div>
 
-            <!-- (All other fields remain the same) -->
-            {{ form.as_p }}
+            <div class="px-4 py-4 flex-grow-1 d-flex flex-column">
 
-            <!-- Submit -->
-            <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success px-4">Generate Itinerary</button>
+                <!-- Section: Trip Basics -->
+                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-suitcase me-1"></i>Trip Basics</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold mb-1">Trip Title</label>
+                        <input type="text" class="form-control" name="trip_title" placeholder="My Chicago Adventure" required value="{{ form.trip_title.value|default:'' }}">
+                        {% if form.trip_title.errors %}<div class="text-danger small">{{ form.trip_title.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-1">Days</label>
+                        <input type="number" class="form-control" name="stay_length" min="1" placeholder="3" value="{{ form.stay_length.value|default:'' }}">
+                        {% if form.stay_length.errors %}<div class="text-danger small">{{ form.stay_length.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Staying In</label>
+                        <select class="form-select" name="stay_location">
+                            {% for choice in form.stay_location.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.stay_location.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.stay_location.errors %}<div class="text-danger small">{{ form.stay_location.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Section: Preferences -->
+                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-heart me-1"></i>Preferences</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Cuisine</label>
+                        <select class="form-select" name="preferred_cuisine">
+                            {% for choice in form.preferred_cuisine.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.preferred_cuisine.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.preferred_cuisine.errors %}<div class="text-danger small">{{ form.preferred_cuisine.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Activity Level</label>
+                        <select class="form-select" name="activity_level">
+                            {% for choice in form.activity_level.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.activity_level.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.activity_level.errors %}<div class="text-danger small">{{ form.activity_level.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Travelling With</label>
+                        <select class="form-select" name="social_context">
+                            {% for choice in form.social_context.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.social_context.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.social_context.errors %}<div class="text-danger small">{{ form.social_context.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Section: Logistics -->
+                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-sliders me-1"></i>Logistics</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Daily Activity Time</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="activity_duration_hours" min="1" placeholder="4" value="{{ form.activity_duration_hours.value|default:'' }}">
+                            <span class="input-group-text">hrs</span>
+                        </div>
+                        {% if form.activity_duration_hours.errors %}<div class="text-danger small">{{ form.activity_duration_hours.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Trip Budget</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="budget" min="0" step="0.01" placeholder="500.00" value="{{ form.budget.value|default:'' }}">
+                        </div>
+                        {% if form.budget.errors %}<div class="text-danger small">{{ form.budget.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-1">Search Radius</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="radius" min="1" placeholder="5" value="{{ form.radius.value|default:'' }}">
+                            <span class="input-group-text">mi</span>
+                        </div>
+                        {% if form.radius.errors %}<div class="text-danger small">{{ form.radius.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="flex-grow-1 d-flex flex-column mb-3">
+                    <label class="form-label fw-semibold mb-1">
+                        <i class="bi bi-slash-circle me-1 text-muted"></i>Anything to avoid? <span class="text-muted fw-normal">(optional)</span>
+                    </label>
+                    <textarea class="form-control flex-grow-1" name="dislikes" placeholder="e.g., long walks, spicy food, crowded places" style="min-height: 80px;">{{ form.dislikes.value|default:'' }}</textarea>
+                    {% if form.dislikes.errors %}<div class="text-danger small">{{ form.dislikes.errors.0 }}</div>{% endif %}
+                </div>
+
+                <!-- Submit -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary fw-semibold py-2">
+                        <i class="bi bi-stars me-2"></i>Generate My Itinerary
+                    </button>
+                </div>
+
             </div>
         </div>
     </form>
