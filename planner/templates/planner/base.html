@@ -21,58 +21,44 @@
 
   <!-- Navbar -->
   <nav class="navbar navbar-light bg-white border-bottom shadow-sm">
-    <div class="container-fluid py-2">
-      <div class="d-flex align-items-center gap-2">
-        <div class="dropdown">
-          <button class="navbar-toggler" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding-top: 0.1rem; padding-bottom: 0.1rem;">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-         <!-- Dropdown Menu -->
-          <ul class="dropdown-menu" id="menuDropdown">
-            <li class="dropdown-item"><a class="nav-link" href="{% url 'planner:dashboard' %}">Dashboard</a></li>
-            <li class="dropdown-item"><a class="nav-link" href="{% url 'planner:summary' %}">Summary</a></li>
-            <li class="dropdown-item"><a class="nav-link" href="{% url 'planner:favorites' %}">Favorites</a></li>
-            <li class="dropdown-item"><a class="nav-link btn btn-primary text-white" href="{% url 'planner:survey' %}">+ New Itinerary</a></li>
-            {% if user.is_authenticated %}
-              <li class="dropdown-item">
-                <div class="d-flex flex-column">
-                  <span class="fw-bold">{{ user.username }}</span>
-                  <span class="text-muted small">{{ user.email }}</span>
-                  <a class="nav-link text-danger mt-2" href="{% url 'planner:logout' %}">Logout</a>
-                </div>
+    <div class="container-fluid px-4 py-2 d-flex align-items-center">
+
+      <!-- Left: Logo + Brand -->
+      <div class="d-flex align-items-center gap-2 me-4">
+        <img src="{% static 'img/chigologo.jpg' %}" alt="ChiGo Logo" style="height: 32px; width: auto;">
+        <a class="navbar-brand fw-bold mb-0" href="{% url 'planner:dashboard' %}" style="font-size: 1.3rem;">ChiGo</a>
+      </div>
+
+      <!-- Center: Nav links -->
+      <div class="d-none d-md-flex gap-1 align-items-center">
+        <a href="{% url 'planner:dashboard' %}" class="btn btn-sm btn-light text-secondary fw-medium">Dashboard</a>
+        <a href="{% url 'planner:summary' %}" class="btn btn-sm btn-light text-secondary fw-medium">Summary</a>
+        <a href="{% url 'planner:favorites' %}" class="btn btn-sm btn-light text-secondary fw-medium">Favorites</a>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="ms-auto d-flex gap-2 align-items-center">
+        <a href="{% url 'planner:survey' %}" class="btn btn-primary btn-sm fw-semibold">+ New Itinerary</a>
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle"></i>
+              <span class="d-none d-md-inline">{{ user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="dropdown-item-text py-2">
+                <div class="fw-semibold">{{ user.username }}</div>
+                <div class="text-muted small">{{ user.email }}</div>
               </li>
-            {% else %}
-              <li class="dropdown-item"><a class="nav-link" href="{% url 'planner:login' %}">Login</a></li>
-            {% endif %}
-          </ul>
-        </div>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item text-danger" href="{% url 'planner:logout' %}">Logout</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'planner:login' %}" class="btn btn-outline-primary btn-sm">Login</a>
+        {% endif %}
+      </div>
 
-
-        <img src="{% static 'img/chigologo.jpg' %}" alt="ChiGo Logo" height="36" class="chigo-logo" style="height: 36px; width: auto; margin-bottom: 0; display: block;">
-
-        <a class="navbar-brand" href="{% url 'planner:dashboard' %}" style="font-size: 1.5rem; line-height: 1; padding-bottom: 0; margin-bottom: 0;">ChiGo</a>
-
-        <div class="ms-auto d-flex gap-2 align-items-center">
-          <a href="{% url 'planner:survey' %}" class="btn btn-primary btn-sm">+ New Itinerary</a>
-          {% if user.is_authenticated %}
-            <div class="dropdown">
-              <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li class="dropdown-item-text">
-                  <div><strong>{{ user.username }}</strong></div>
-                  <div class="text-muted small">{{ user.email }}</div>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="{% url 'planner:logout' %}">Logout</a></li>
-              </ul>
-            </div>
-          {% else %}
-            <a href="{% url 'planner:login' %}" class="btn btn-outline-primary btn-sm">Login</a>
-          {% endif %}
-        </div>
-    </div>
     </div>
   </nav>
 

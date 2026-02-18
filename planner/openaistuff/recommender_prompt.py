@@ -1,138 +1,95 @@
 from openai import OpenAI
-from .nearby_locations import nearby_places
-from ..googleplaces.google_places_api import enhance_activity_list
 import json
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
-def build_prompt(user_preferences, activity_list):
-    return f"""
-YOU MUST FOLLOW THESE RULES:
 
-1. ONLY use the activities/restaurants I’ve provided. DO NOT create your own entries.
-2. If there aren't enough activities or restaurants, just recommend fewer, NEVER make up new ones.
-3. The final output MUST follow this JSON format:
+def build_prompt(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes):
+    return f"""You are an expert Chicago travel planner. Build a personalized, day-by-day itinerary for a visitor based strictly on their survey preferences below.
+
+USER SURVEY:
+- Trip length: {stay_length} days
+- Staying in: {location}, Chicago  ← BASE LOCATION. Prioritize places here and in immediately adjacent neighborhoods.
+- Favorite cuisine: {favorite_cuisine}
+- Activity level: {activity_level}  (Low = relaxed/seated, Moderate = some walking, High = physically active)
+- Budget: ${budget}
+- Travelling with: {social_context}
+- Wants to avoid: {dislikes}
+
+RULES:
+1. Only recommend places that genuinely exist in Chicago. Do not make up places.
+2. The user is staying in {location}. Day 1 should be centered in or very close to {location}. Later days may venture to nearby neighborhoods, but always keep the base location in mind.
+3. Each day MUST have exactly 4 items: at least 2 activities/attractions AND at least 1 restaurant. Use the 4th slot for whichever fits best.
+4. Match recommendations to the user's cuisine preference, activity level, budget, and social context.
+5. Add 8-12 alternative places (not used in the itinerary) into recommendations for the user to swap in, also prioritizing {location} and nearby areas.
+6. Never repeat a place between itinerary and recommendations.
+7. Output MUST be valid JSON in exactly this format — no extra text:
 
 {{
     "itinerary": [
         {{
             "neighborhood": "Lincoln Park",
             "name": "Lincoln Park Zoo",
-            "explanation": "Detailed and creative why this is a good fit for me",
+            "explanation": "Free admission makes it perfect for your budget, and the outdoor walks suit your moderate activity level.",
             "day": 1,
-            "order": 2,
-            "category": "activity",
-        }},
-        ...
-    ]
+            "order": 1,
+            "category": "activity"
+        }}
+    ],
     "recommendations": [
         {{
-            "neighborhood": "Lincoln Park",
-            "name": "Lincoln Park Zoo",
-            "explanation": "Detailed and creative why this is a good fit for me",
-            "category": "activity",
-        }},
-        ...
-    ],
-}}
-4. For each day in the itinerary, you MUST include 4 things to do. At least 2 of those MUST BE AN ACTIVITY, and at least 1 of those MUST BE A RESTAURANT
-5. Put all remaining activities and restaurants not used in the itinerary into the recommendations list.
-6. Do not repeat any item in both itinerary and recommendations.
-7. For each item, include: name, neighborhood, category (restaurant/activity), latitude, longitude, and a brief explanation.
-8. If you run out of valid activities, leave that day incomplete. DO NOT substitute with extra restaurants.
+            "neighborhood": "River North",
+            "name": "Frontera Grill",
+            "explanation": "Award-winning Mexican cuisine that matches your taste preference.",
+            "category": "restaurant"
+        }}
+    ]
+}}"""
 
-Now here is the list of available places and user preferences:
-Activity list:
-{activity_list}
 
-User Preferences:
-{user_preferences}
-
-REMEMBER: DO NOT make up anything not already provided. Use only what's in the list above.
-FORMAT STRICTLY AS SHOWN ABOVE. Do not change field names, do not add or omit fields.
-"""
-
-def activity_recommendation(user_preferences, location, radius_miles):
-
-    activity_list = json.dumps(nearby_places(location, radius_miles))
-    # print(f"Activity list sent to GPT: {activity_list}")
-    prompt = build_prompt(user_preferences, activity_list)
-    response = client.chat.completions.create(model="gpt-4o",
-    messages=[
-        {"role": "system", "content": "You are a JSON-only response generator. Use `null` for missing values (not `None`). Do not include any commentary outside the JSON object."},
-        {"role": "user", "content": prompt}
-    ])
+def activity_recommendation(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes):
+    prompt = build_prompt(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a JSON-only response generator. Do not include any text outside the JSON object."},
+            {"role": "user", "content": prompt}
+        ]
+    )
 
     try:
         content = response.choices[0].message.content.strip()
 
-        # Strip markdown code blocks if present
         if content.startswith("```json"):
-            content = content[7:]  # Remove ```json
+            content = content[7:]
         elif content.startswith("```"):
-            content = content[3:]  # Remove ```
-
+            content = content[3:]
         if content.endswith("```"):
-            content = content[:-3]  # Remove trailing ```
-
+            content = content[:-3]
         content = content.strip()
 
         parsed = json.loads(content)
-        print(f"[DEBUG] Parsed list:\n{json.dumps(parsed, indent=4)}")
+        print(f"[DEBUG] GPT itinerary:\n{json.dumps(parsed, indent=4)}")
         return parsed
     except json.JSONDecodeError:
         print("[ERROR] Could not parse GPT response as JSON.")
         print("[RAW RESPONSE]", response.choices[0].message.content)
-        return None 
+        return None
 
-def get_recommendations(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes, radius_miles):
+
+def get_recommendations(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes):
     """
-    Returns a dictionary
-    ```
+    Returns:
     {
-        "itinerary": [
-            {
-                "neighborhood": "Lincoln Park",
-                "name": "Lincoln Park Zoo",
-                "explanation": "A relaxing outdoor option that fits the user's interest in nature",
-                "day": 1,
-                "order": 2,
-                "category": "activity"
-            },
-        ]
-        "recommendations": [
-            {
-                "neighborhood": "Lincoln Park",
-                "name": "Lincoln Park Zoo",
-                "explanation": "A relaxing outdoor option that fits the user's interest in nature",
-                "category": "activity"
-            },
-        ],
+        "itinerary": [ { neighborhood, name, explanation, day, order, category }, ... ],
+        "recommendations": [ { neighborhood, name, explanation, category }, ... ]
     }
-    ```
     """
-
-    # MOCK DATA DISABLED - Using real OpenAI API
-    user_input = f"""
-- Staying for {stay_length} days
-- Staying in the neighborhood {location}
-- Favorite cuisine is {favorite_cuisine}
-- Activity level of user is {activity_level}
-- Budget of user is {budget}
-- Social Context of user is {social_context}
-- General dislikes of user is {dislikes}
-"""
-
-    result = activity_recommendation(user_input, location, radius_miles)
+    result = activity_recommendation(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes)
 
     if result is None:
         raise ValueError("GPT response could not be parsed as JSON.")
 
-    # print(result)
-
-    # print(json.dumps(result, indent=4))
     return result
-
-# get_recommendations(6, "River North", "Chinese", "High", "$$", "family", "messy activities")

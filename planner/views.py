@@ -353,8 +353,32 @@ def create_new_itinerary(request, stay_length):
     request.session["current_itinerary"] = itinerary.id # store the current itinerary in the user's session so we can keep "building it"
 
 
+def lookup_place_details(name, api_key):
+    """Look up a Chicago place by name via Google Places API and return photo_name, lat, lng, address."""
+    url = "https://places.googleapis.com/v1/places:searchText"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": "places.formattedAddress,places.location,places.photos"
+    }
+    try:
+        response = requests.post(url, headers=headers, json={"textQuery": f"{name} Chicago"}, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("places"):
+                place = data["places"][0]
+                return {
+                    "photo_name": place["photos"][0]["name"] if place.get("photos") else "",
+                    "latitude": place.get("location", {}).get("latitude", 0),
+                    "longitude": place.get("location", {}).get("longitude", 0),
+                    "address": place.get("formattedAddress", "")
+                }
+    except Exception as e:
+        print(f"[ERROR] Places lookup failed for '{name}': {e}")
+    return {"photo_name": "", "latitude": 0, "longitude": 0, "address": ""}
+
+
 def fetch_and_store_recommendations(data, request):
-    # print("[DEBUG] Called fetch_and_store_recommendations()")
     result = get_recommendations(
         data["stay_length"],
         data["stay_location"],
@@ -362,61 +386,20 @@ def fetch_and_store_recommendations(data, request):
         data["activity_level"],
         data["budget"],
         data["social_context"],
-        data["dislikes"],
-        data.get("radius", 5)  # Use radius from survey (miles)
+        data["dislikes"]
     )
 
-    # need to add back all the photo names into dict
-    with open("planner/openaistuff/activity-list.json", "r") as f:
-        activity_list = json.loads(f.read())
+    api_key = os.getenv("PLACES_API_KEY")
 
-    
-    # add the photo details to the recommendations/itinerary list
-    for itinerary in result["itinerary"]:
-        itinerary.setdefault("photo_name", "")
-        itinerary.setdefault("latitude", 0)
-        itinerary.setdefault("longitude", 0)
-        itinerary.setdefault("address", "")
-        for neighborhood in activity_list["neighborhoods"]:
-            for neighborhood_name, neighborhood_details in neighborhood.items():
-                for restaurant in neighborhood_details["restaurants"]:
-                    for restaurant_name, restaurant_details in restaurant.items():
-                        if restaurant_name == itinerary["name"]:
-                            itinerary["photo_name"] = restaurant_details["photo_name"]
-                            itinerary["latitude"] = restaurant_details["location"]["latitude"]
-                            itinerary["longitude"] = restaurant_details["location"]["longitude"]
-                            itinerary["address"] = restaurant_details["address"]
-
-                for attraction in neighborhood_details["attractions"]:
-                    for attraction_name, attraction_details in attraction.items():
-                        if attraction_name == itinerary["name"]:
-                            itinerary["photo_name"] = attraction_details["photo_name"]
-                            itinerary["latitude"] = attraction_details["location"]["latitude"]
-                            itinerary["longitude"] = attraction_details["location"]["longitude"]
-                            itinerary["address"] = attraction_details["address"]
-
-    for recommendations in result["recommendations"]:
-        recommendations.setdefault("photo_name", "")
-        recommendations.setdefault("latitude", 0)
-        recommendations.setdefault("longitude", 0)
-        recommendations.setdefault("address", "")
-        for neighborhood in activity_list["neighborhoods"]:
-            for neighborhood_name, neighborhood_details in neighborhood.items():
-                for restaurant in neighborhood_details["restaurants"]:
-                    for restaurant_name, restaurant_details in restaurant.items():
-                        if restaurant_name == recommendations["name"]:
-                            recommendations["photo_name"] = restaurant_details["photo_name"]
-                            recommendations["latitude"] = restaurant_details["location"]["latitude"]
-                            recommendations["longitude"] = restaurant_details["location"]["longitude"]
-                            recommendations["address"] = restaurant_details["address"]
-
-                for attraction in neighborhood_details["attractions"]:
-                    for attraction_name, attraction_details in attraction.items():
-                        if attraction_name == recommendations["name"]:
-                            recommendations["photo_name"] = attraction_details["photo_name"]
-                            recommendations["latitude"] = attraction_details["location"]["latitude"]
-                            recommendations["longitude"] = attraction_details["location"]["longitude"]
-                            recommendations["address"] = attraction_details["address"]
+    # Enrich every item with real coords and photo from Google Places
+    for item in result["itinerary"] + result["recommendations"]:
+        item.setdefault("photo_name", "")
+        item.setdefault("latitude", 0)
+        item.setdefault("longitude", 0)
+        item.setdefault("address", "")
+        if api_key:
+            details = lookup_place_details(item["name"], api_key)
+            item.update(details)
 
     print(f"[DEBUG] Photo URLs in itinerary:")
     for item in result["itinerary"]:
@@ -424,8 +407,6 @@ def fetch_and_store_recommendations(data, request):
 
     request.session["itinerary"] = result["itinerary"]
     request.session["recommendations"] = result["recommendations"]
-    
-    # request.session["activity_index"] = 0
 
 def login_view(request):
     form = LoginForm(request.POST or None)

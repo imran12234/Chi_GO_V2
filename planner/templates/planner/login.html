@@ -1,87 +1,56 @@
 {% extends "planner/base.html" %}
-{% block title %}User Login{% endblock %}
-{% block content %}
+{% block title %}Login{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            background-image: url('/static/images/chicago-skyline.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .login-container {
-            border: 1px solid #aaa;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.95);
-            text-align: center;
-            width: 300px;
-            border-radius: 8px;
-            margin: 80px auto;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        input {
-            margin: 10px 0;
-            width: 90%;
-            padding: 8px;
-        }
-        .error {
-            color: red;
-            margin: 5px 0;
-            font-size: 0.9em;
-        }
-        a {
-            color: blue;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form method="post">
-            {% csrf_token %}
-        
-            <!-- Username field -->
-            {{ form.username.label_tag }}<br>
-            {{ form.username }}<br>
-        
-            <!-- Password field -->
-            {{ form.password.label_tag }}<br>
-            {{ form.password }}<br>
-        
-            <!-- Non-field errors (like invalid credentials) -->
-            {% if form.non_field_errors %}
-                <div class="error">
-                    {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        
-            <!-- Field-specific errors -->
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <div class="error">
-                        <p>{{ error }}</p>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-        
-            <a href="/password/reset">Forgot Password?</a><br><br>
-            <a href="/register">Create account</a><br><br>
-            <button type="submit">Login</button>
-        </form>        
+{% block head %}
+<style>
+  .auth-bg {
+    background-image: url('/static/images/chicago-skyline.jpg');
+    background-size: cover;
+    background-position: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-bg">
+  <div class="card border-0 shadow" style="width: 100%; max-width: 360px; border-radius: 12px;">
+    <div class="card-body p-4">
+      <h4 class="fw-bold text-center mb-4">Login</h4>
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username</label>
+          <input type="text" name="username" class="form-control" placeholder="Username" value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Password">
+          {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2 small">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary fw-semibold">Login</button>
+        </div>
+      </form>
+
+      <div class="text-center mt-3 small">
+        <a href="/password/reset" class="text-muted">Forgot Password?</a>
+        <span class="text-muted mx-2">·</span>
+        <a href="{% url 'planner:register' %}" class="text-muted">Create account</a>
+      </div>
     </div>
-</body>
-</html>
+  </div>
+</div>
 {% endblock %}
