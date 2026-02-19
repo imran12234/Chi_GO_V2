@@ -7,3 +7,5 @@ openai
 requests
 geopy
 gunicorn
+dj-database-url
+whitenoise
