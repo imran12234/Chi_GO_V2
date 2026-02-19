@@ -52,7 +52,9 @@ RULES:
 def activity_recommendation(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes):
     prompt = build_prompt(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes)
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
+        max_tokens= 2000,
+        temperature=0,
         messages=[
             {"role": "system", "content": "You are a JSON-only response generator. Do not include any text outside the JSON object."},
             {"role": "user", "content": prompt}
