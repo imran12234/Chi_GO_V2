@@ -82,7 +82,7 @@ def activity_recommendation(stay_length, location, favorite_cuisine, activity_le
         return None
 
 
-def get_recommendations(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes, radius=5):
+def get_recommendations(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes):
     """
     Returns:
     {
@@ -90,7 +90,7 @@ def get_recommendations(stay_length, location, favorite_cuisine, activity_level,
         "recommendations": [ { neighborhood, name, explanation, category }, ... ]
     }
     """
-    result = activity_recommendation(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes, radius)
+    result = activity_recommendation(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes)
 
     if result is None:
         raise ValueError("GPT response could not be parsed as JSON.")
