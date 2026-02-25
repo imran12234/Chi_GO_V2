@@ -50,8 +50,8 @@ class ItineraryActivity(models.Model):
     longitude = models.FloatField()
     order = models.IntegerField()
     category = models.CharField(max_length=255)
-    photo_name = models.CharField()
-    address = models.CharField()
+    photo_name = models.CharField(max_length=1024, blank=True, default="")
+    address = models.CharField(max_length=512, blank=True, default="")
     # start_time = models.TimeField()
     # end_time = models.TimeField()
     def duration(self):

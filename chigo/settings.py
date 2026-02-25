@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-kr1_&kjzun$wemds)hvj3f=+tac8&(3#f&tdtt%&ee2&1vxz%8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG") == "True"
 
-ALLOWED_HOSTS = ["chi-go-v2.onrender.com", ".onrender.com"]
+ALLOWED_HOSTS = ["chi-go-v2.onrender.com", ".onrender.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -136,8 +136,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = [os.environ.get("CSRF_TRUSTED_ORIGIN", "https://chi-go-v2.onrender.com")]
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+IS_PRODUCTION = bool(os.environ.get("DATABASE_URL"))
+CSRF_COOKIE_SECURE = IS_PRODUCTION
+SESSION_COOKIE_SECURE = IS_PRODUCTION
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

@@ -3,54 +3,212 @@
 
 {% block head %}
 <style>
+  /* Let auth-bg fill the full <main> height */
+  main { display: flex; flex-direction: column; }
+
   .auth-bg {
+    flex: 1;
     background-image: url('/static/images/chicago-skyline.jpg');
     background-size: cover;
-    background-position: center;
-    flex: 1;
+    background-position: center top;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem 1rem;
+    padding: 2.5rem 1rem;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* Gradient overlay — lighter at top, darker at bottom */
+  .auth-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.55) 100%
+    );
+  }
+
+  .auth-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 18px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+    padding: 2.25rem 2rem 2rem;
+  }
+
+  .auth-brand {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+
+  .auth-brand .brand-name {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #0d6efd;
+  }
+
+  .auth-brand .brand-tagline {
+    font-size: 0.82rem;
+    color: #6c757d;
+    margin-top: 3px;
+    letter-spacing: 0.2px;
+  }
+
+  .auth-card h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .auth-card .form-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #374151;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .input-icon-wrap {
+    position: relative;
+  }
+
+  .input-icon-wrap .bi {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.95rem;
+    pointer-events: none;
+  }
+
+  .input-icon-wrap .form-control {
+    padding-left: 2.3rem;
+  }
+
+  .auth-card .form-control {
+    border-radius: 9px;
+    padding: 0.65rem 0.875rem;
+    border: 1.5px solid #e5e7eb;
+    font-size: 0.9rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fafafa;
+  }
+
+  .auth-card .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+    background: #fff;
+  }
+
+  .auth-card .form-control::placeholder {
+    color: #c0c8d5;
+  }
+
+  .btn-auth {
+    background: linear-gradient(135deg, #1a73e8 0%, #0056d2 100%);
+    border: none;
+    border-radius: 9px;
+    padding: 0.72rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #fff;
+    width: 100%;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 0.25rem;
+  }
+
+  .btn-auth:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    color: #fff;
+  }
+
+  .auth-footer-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+    font-size: 0.82rem;
+  }
+
+  .auth-footer-links a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.12s;
+  }
+
+  .auth-footer-links a:hover { color: #0d6efd; }
+
+  .auth-footer-links .create-link {
+    color: #0d6efd;
+    font-weight: 700;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="auth-bg">
-  <div class="card border-0 shadow" style="width: 100%; max-width: 360px; border-radius: 12px;">
-    <div class="card-body p-4">
-      <h4 class="fw-bold text-center mb-4">Login</h4>
-      <form method="post" novalidate>
-        {% csrf_token %}
+  <div class="auth-card">
 
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Username</label>
-          <input type="text" name="username" class="form-control" placeholder="Username" value="{{ form.username.value|default:'' }}">
-          {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Password</label>
-          <input type="password" name="password" class="form-control" placeholder="Password">
-          {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
-        </div>
-
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger py-2 small">{{ form.non_field_errors.0 }}</div>
-        {% endif %}
-
-        <div class="d-grid mt-4">
-          <button type="submit" class="btn btn-primary fw-semibold">Login</button>
-        </div>
-      </form>
-
-      <div class="text-center mt-3 small">
-        <a href="/password/reset" class="text-muted">Forgot Password?</a>
-        <span class="text-muted mx-2">·</span>
-        <a href="{% url 'planner:register' %}" class="text-muted">Create account</a>
-      </div>
+    <div class="auth-brand">
+      <div class="brand-name">ChiGo</div>
+      <div class="brand-tagline">Your Chicago travel planner</div>
     </div>
+
+    <h5>Welcome back</h5>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-person"></i>
+          <input type="text" name="username" class="form-control"
+                 placeholder="Enter your username"
+                 value="{{ form.username.value|default:'' }}">
+        </div>
+        {% if form.username.errors %}
+          <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-lock"></i>
+          <input type="password" name="password" class="form-control"
+                 placeholder="Enter your password">
+        </div>
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2 small rounded-3 mb-3">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="btn-auth">Sign in</button>
+    </form>
+
+    <div class="auth-footer-links">
+      <a href="/password/reset">Forgot password?</a>
+      <a href="{% url 'planner:register' %}" class="create-link">Create account &rarr;</a>
+    </div>
+
   </div>
 </div>
 {% endblock %}
