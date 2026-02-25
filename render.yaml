@@ -13,8 +13,6 @@ services:
           property: connectionString
       - key: CSRF_TRUSTED_ORIGIN
         value: https://chi-go-v2.onrender.com
-      - key: ALLOWED_HOSTS
-        value: chi-go-v2.onrender.com
 
 databases:
   - name: chi-go-db

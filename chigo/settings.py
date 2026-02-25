@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-kr1_&kjzun$wemds)hvj3f=+tac8&(3#f&tdtt%&ee2&1vxz%8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG") == "True"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = ["chi-go-v2.onrender.com", ".onrender.com"]
 
 
 # Application definition
