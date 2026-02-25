@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: chi-go-v2
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn chigo.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chi-go-db
+          property: connectionString
+      - key: CSRF_TRUSTED_ORIGIN
+        value: https://chi-go-v2.onrender.com
+      - key: ALLOWED_HOSTS
+        value: chi-go-v2.onrender.com
+
+databases:
+  - name: chi-go-db
+    plan: free
