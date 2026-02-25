@@ -2,7 +2,7 @@ services:
   - type: web
     name: chi-go-v2
     runtime: python
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
     startCommand: gunicorn chigo.wsgi:application
     envVars:
       - key: DEBUG
