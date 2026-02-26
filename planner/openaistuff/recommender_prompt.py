@@ -22,11 +22,12 @@ USER SURVEY:
 RULES:
 1. Only recommend places that genuinely exist in Chicago. Do not make up places.
 2. The user is staying in {location}. Every recommended place MUST be within {radius} miles of {location}. Do not suggest places outside this radius.
-3. Each day MUST have exactly 4 items: at least 2 activities/attractions AND at least 1 restaurant. Use the 4th slot for whichever fits best.
+3. You MUST generate exactly {stay_length} days of activities. Each day MUST have exactly 4 items: at least 2 activities/attractions AND at least 1 restaurant. That means {stay_length * 4} total itinerary items with "day" values from 1 to {stay_length}. Do NOT stop at Day 1.
 4. Match recommendations to the user's cuisine preference, activity level, budget, and social context.
 5. Add 8-12 alternative places (not used in the itinerary) into recommendations for the user to swap in, also within {radius} miles of {location}.
 6. Never repeat a place between itinerary and recommendations.
-7. Output MUST be valid JSON in exactly this format — no extra text:
+7. CRITICAL: The itinerary array MUST contain items for ALL {stay_length} days. If the trip is 3 days, return 12 items (4 for day 1, 4 for day 2, 4 for day 3). Stopping early is unacceptable.
+8. Output MUST be valid JSON in exactly this format — no extra text:
 
 {{
     "itinerary": [
@@ -54,7 +55,7 @@ def activity_recommendation(stay_length, location, favorite_cuisine, activity_le
     prompt = build_prompt(stay_length, location, favorite_cuisine, activity_level, budget, social_context, dislikes, radius)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        max_tokens= 2000,
+        max_tokens=4000,
         temperature=0,
         timeout=120,
         messages=[
