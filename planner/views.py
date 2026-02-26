@@ -431,7 +431,7 @@ def lookup_place_details(name, api_key):
         response = requests.post(url, headers=headers, json={
             "textQuery": f"{name} Chicago",
             "locationBias": chicago_bias
-        }, timeout=10)
+        }, timeout=30)
         if response.status_code == 200:
             data = response.json()
             if data.get("places"):
